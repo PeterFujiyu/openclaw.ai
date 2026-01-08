@@ -101,7 +101,6 @@ import Layout from '../layouts/Layout.astro';
           <div class="pm-switch">
             <button class="pm-btn active" data-pm="npm">npm</button>
             <button class="pm-btn" data-pm="pnpm">pnpm</button>
-            <button class="pm-btn" data-pm="bun">bun</button>
           </div>
         </div>
         <pre id="code-quick"><code><span class="code-comment"># Install globally</span>
@@ -127,8 +126,7 @@ import Layout from '../layouts/Layout.astro';
     <script>
       const installCmds = {
         npm: 'npm i -g clawdbot',
-        pnpm: 'pnpm add -g clawdbot',
-        bun: 'bun add -g clawdbot'
+        pnpm: 'pnpm add -g clawdbot'
       };
 
       let currentPm = 'npm';
