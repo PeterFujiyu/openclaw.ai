@@ -1,5 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import testimonials from '../data/testimonials.json';
+
+// Duplicate for seamless loop
+const row1 = [...testimonials.slice(0, 9), ...testimonials.slice(0, 9)];
+const row2 = [...testimonials.slice(9), ...testimonials.slice(9)];
 ---
 
 <Layout title="Clawdbot — Personal AI Assistant">
@@ -164,6 +169,47 @@ import Layout from '../layouts/Layout.astro';
         });
       });
     </script>
+
+    <!-- Testimonials -->
+    <section class="testimonials">
+      <h2 class="section-title">
+        <span class="claw-accent">⟩</span> What People Say
+      </h2>
+      <div class="testimonials-track">
+        <div class="testimonials-row row-1">
+          {row1.map((t) => (
+            <a href={t.url} target="_blank" rel="noopener" class="testimonial-card">
+              <img
+                src={`https://unavatar.io/x/${t.author}`}
+                alt={t.author}
+                class="testimonial-avatar"
+                loading="lazy"
+              />
+              <div class="testimonial-content">
+                <p class="testimonial-quote">"{t.quote}"</p>
+                <span class="testimonial-author">@{t.author}</span>
+              </div>
+            </a>
+          ))}
+        </div>
+        <div class="testimonials-row row-2">
+          {row2.map((t) => (
+            <a href={t.url} target="_blank" rel="noopener" class="testimonial-card">
+              <img
+                src={`https://unavatar.io/x/${t.author}`}
+                alt={t.author}
+                class="testimonial-avatar"
+                loading="lazy"
+              />
+              <div class="testimonial-content">
+                <p class="testimonial-quote">"{t.quote}"</p>
+                <span class="testimonial-author">@{t.author}</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
 
     <!-- Footer -->
     <footer class="footer">
@@ -559,6 +605,127 @@ import Layout from '../layouts/Layout.astro';
   }
 
 
+  /* Testimonials */
+  .testimonials {
+    margin-bottom: 56px;
+    animation: fadeInUp 0.8s ease-out 0.75s both;
+    overflow: hidden;
+    margin-left: -24px;
+    margin-right: -24px;
+    padding: 0 24px;
+  }
+
+  .testimonials .section-title {
+    padding-left: 24px;
+  }
+
+  .testimonials-track {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-left: -24px;
+    margin-right: -24px;
+    overflow: hidden;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 5%,
+      black 95%,
+      transparent
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 5%,
+      black 95%,
+      transparent
+    );
+  }
+
+  .testimonials-row {
+    display: flex;
+    gap: 16px;
+    width: max-content;
+    padding: 8px 0;
+  }
+
+  .row-1 {
+    animation: scroll-left 60s linear infinite;
+  }
+
+  .row-2 {
+    animation: scroll-right 50s linear infinite;
+  }
+
+  @keyframes scroll-left {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  @keyframes scroll-right {
+    from { transform: translateX(-50%); }
+    to { transform: translateX(0); }
+  }
+
+  .testimonial-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    min-width: 320px;
+    max-width: 400px;
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    background: rgba(10, 15, 26, 0.7);
+    backdrop-filter: blur(8px);
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+  }
+
+  .testimonial-card:hover {
+    border-color: var(--coral-bright);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 77, 77, 0.15);
+  }
+
+  .testimonials-row:hover {
+    animation-play-state: paused;
+  }
+
+  .testimonial-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid var(--border-subtle);
+    background: var(--bg-elevated);
+  }
+
+  .testimonial-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .testimonial-quote {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .testimonial-author {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--coral-bright);
+  }
+
   /* Responsive */
   @media (max-width: 480px) {
     .container {
@@ -576,6 +743,36 @@ import Layout from '../layouts/Layout.astro';
 
     .cta-label {
       font-size: 0.9rem;
+    }
+
+    .testimonials {
+      margin-left: -16px;
+      margin-right: -16px;
+      padding: 0 16px;
+    }
+
+    .testimonials .section-title {
+      padding-left: 16px;
+    }
+
+    .testimonials-track {
+      margin-left: -16px;
+      margin-right: -16px;
+    }
+
+    .testimonial-card {
+      min-width: 280px;
+      max-width: 320px;
+      padding: 12px;
+    }
+
+    .testimonial-avatar {
+      width: 36px;
+      height: 36px;
+    }
+
+    .testimonial-quote {
+      font-size: 0.85rem;
     }
   }
 </style>
