@@ -150,8 +150,19 @@ function Main {
         Run-Doctor
     }
 
+    $installedVersion = $null
+    try {
+        $installedVersion = (clawdbot --version 2>$null).Trim()
+    } catch {
+        $installedVersion = $null
+    }
+
     Write-Host ""
-    Write-Host "Clawdbot installed successfully!" -ForegroundColor Green
+    if ($installedVersion) {
+        Write-Host "🦞 Clawdbot installed successfully ($installedVersion)!" -ForegroundColor Green
+    } else {
+        Write-Host "🦞 Clawdbot installed successfully!" -ForegroundColor Green
+    }
     Write-Host ""
     if ($isUpgrade) {
         $updateMessages = @(
@@ -160,7 +171,7 @@ function Main {
             "Back and better. Did you even notice I was gone?",
             "Update complete. I learned some new tricks while I was out.",
             "Upgraded! Now with 23% more sass.",
-            "I've evolved. Try to keep up.",
+            "I've evolved. Try to keep up. 🦞",
             "New version, who dis? Oh right, still me but shinier.",
             "Patched, polished, and ready to pinch. Let's go.",
             "The lobster has molted. Harder shell, sharper claws.",
