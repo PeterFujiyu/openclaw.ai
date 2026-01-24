@@ -727,5 +727,12 @@
     "images": [
       "https://pbs.twimg.com/media/G_XhKuKbAAQ0bV_.jpg"
     ]
+  },
+  {
+    "id": "2013908013619319293",
+    "author": "Diego_F_Aguirre",
+    "quote": "I'm literally debugging my fitness app mid-workout with Clawdbot.\n\nBetween sets: 'here's the bug' → it patches → I keep moving.\n\nAbsolutely wild 🤯",
+    "category": "developer",
+    "likes": 6
   }
 ]
