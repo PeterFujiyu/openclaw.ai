@@ -61,12 +61,28 @@ command -v git >/dev/null
 echo "==> Verify clawdbot installed"
 LATEST_VERSION="$(npm view clawdbot dist-tags.latest)"
 NEXT_VERSION="$(npm view clawdbot dist-tags.next)"
-CMD_PATH="$(command -v clawdbot || true)"
-if [[ -z "$CMD_PATH" && -x "$HOME/.npm-global/bin/clawdbot" ]]; then
-  CMD_PATH="$HOME/.npm-global/bin/clawdbot"
-fi
+CMD_PATH=""
+for cmd in clawdbot openclaw; do
+  if command -v "$cmd" >/dev/null 2>&1; then
+    CMD_PATH="$(command -v "$cmd")"
+    break
+  fi
+done
+
 if [[ -z "$CMD_PATH" ]]; then
-  echo "clawdbot not on PATH" >&2
+  npm_prefix="$(npm prefix -g 2>/dev/null || true)"
+  for bin_dir in "$HOME/.npm-global/bin" "$HOME/.local/bin" "$npm_prefix/bin"; do
+    for cmd in clawdbot openclaw; do
+      if [[ -x "$bin_dir/$cmd" ]]; then
+        CMD_PATH="$bin_dir/$cmd"
+        break 2
+      fi
+    done
+  done
+fi
+
+if [[ -z "$CMD_PATH" ]]; then
+  echo "neither clawdbot nor openclaw found on PATH or common user bin paths" >&2
   exit 1
 fi
 INSTALLED_VERSION="$("$CMD_PATH" --version 2>/dev/null | head -n 1 | tr -d '\r')"
