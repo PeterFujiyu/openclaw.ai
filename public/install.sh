@@ -393,13 +393,35 @@ is_shell_function() {
     [[ -n "$name" ]] && declare -F "$name" >/dev/null 2>&1
 }
 
+is_gum_raw_mode_failure() {
+    local err_log="$1"
+    [[ -s "$err_log" ]] || return 1
+    grep -Eiq 'setrawmode' "$err_log"
+}
+
 run_with_spinner() {
     local title="$1"
     shift
 
     if [[ -n "$GUM" ]] && gum_is_tty && ! is_shell_function "${1:-}"; then
-        "$GUM" spin --spinner dot --title "$title" -- "$@"
-        return $?
+        local gum_err
+        gum_err="$(mktempfile)"
+        if "$GUM" spin --spinner dot --title "$title" -- "$@" 2>"$gum_err"; then
+            return 0
+        fi
+        local gum_status=$?
+        if is_gum_raw_mode_failure "$gum_err"; then
+            GUM=""
+            GUM_STATUS="skipped"
+            GUM_REASON="gum raw mode unavailable"
+            ui_warn "Spinner unavailable in this terminal; continuing without spinner"
+            "$@"
+            return $?
+        fi
+        if [[ -s "$gum_err" ]]; then
+            cat "$gum_err" >&2
+        fi
+        return "$gum_status"
     fi
 
     "$@"
