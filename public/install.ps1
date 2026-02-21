@@ -316,6 +316,47 @@ function Run-Doctor {
     Write-Host "[OK] Migration complete" -ForegroundColor Green
 }
 
+function Test-GatewayServiceLoaded {
+    try {
+        $statusJson = (openclaw daemon status --json 2>$null)
+        if ([string]::IsNullOrWhiteSpace($statusJson)) {
+            return $false
+        }
+        $parsed = $statusJson | ConvertFrom-Json
+        if ($parsed -and $parsed.service -and $parsed.service.loaded) {
+            return $true
+        }
+    } catch {
+        return $false
+    }
+    return $false
+}
+
+function Refresh-GatewayServiceIfLoaded {
+    if (-not (Get-Command openclaw -ErrorAction SilentlyContinue)) {
+        return
+    }
+    if (-not (Test-GatewayServiceLoaded)) {
+        return
+    }
+
+    Write-Host "[*] Refreshing loaded gateway service..." -ForegroundColor Yellow
+    try {
+        openclaw gateway install --force | Out-Null
+    } catch {
+        Write-Host "[!] Gateway service refresh failed; continuing." -ForegroundColor Yellow
+        return
+    }
+
+    try {
+        openclaw gateway restart | Out-Null
+        openclaw gateway status --probe --json | Out-Null
+        Write-Host "[OK] Gateway service refreshed" -ForegroundColor Green
+    } catch {
+        Write-Host "[!] Gateway service restart failed; continuing." -ForegroundColor Yellow
+    }
+}
+
 function Get-LegacyRepoDir {
     if (-not [string]::IsNullOrWhiteSpace($env:OPENCLAW_GIT_DIR)) {
         return $env:OPENCLAW_GIT_DIR
@@ -395,6 +436,8 @@ function Main {
         Write-Host "Open a new terminal, then run: openclaw doctor" -ForegroundColor Cyan
         return
     }
+
+    Refresh-GatewayServiceIfLoaded
 
     # Step 3: Run doctor for migrations if upgrading or git install
     if ($isUpgrade -or $InstallMethod -eq "git") {

@@ -505,6 +505,61 @@ resolve_openclaw_version() {
   echo "$version"
 }
 
+is_gateway_daemon_loaded() {
+  local claw="$1"
+  if [[ -z "$claw" || ! -x "$claw" ]]; then
+    return 1
+  fi
+
+  local status_json=""
+  status_json="$("$claw" daemon status --json 2>/dev/null || true)"
+  if [[ -z "$status_json" ]]; then
+    return 1
+  fi
+
+  printf '%s' "$status_json" | node -e '
+const fs = require("fs");
+const raw = fs.readFileSync(0, "utf8").trim();
+if (!raw) process.exit(1);
+try {
+  const data = JSON.parse(raw);
+  process.exit(data?.service?.loaded ? 0 : 1);
+} catch {
+  process.exit(1);
+}
+' >/dev/null 2>&1
+}
+
+refresh_gateway_service_if_loaded() {
+  local claw="${PREFIX}/bin/openclaw"
+  if [[ ! -x "$claw" ]]; then
+    return 0
+  fi
+
+  if ! is_gateway_daemon_loaded "$claw"; then
+    emit_json '{"event":"step","name":"gateway-service","status":"skip","reason":"not-loaded"}'
+    return 0
+  fi
+
+  emit_json '{"event":"step","name":"gateway-service","status":"start"}'
+  log "Refreshing loaded gateway service..."
+
+  if ! "$claw" gateway install --force >/dev/null 2>&1; then
+    emit_json '{"event":"step","name":"gateway-service","status":"warn","reason":"install-failed"}'
+    log "Warning: gateway service refresh failed; continuing."
+    return 0
+  fi
+
+  if ! "$claw" gateway restart >/dev/null 2>&1; then
+    emit_json '{"event":"step","name":"gateway-service","status":"warn","reason":"restart-failed"}'
+    log "Warning: gateway service restart failed; continuing."
+    return 0
+  fi
+
+  "$claw" gateway status --probe --json >/dev/null 2>&1 || true
+  emit_json '{"event":"step","name":"gateway-service","status":"ok"}'
+}
+
 main() {
   parse_args "$@"
 
@@ -529,6 +584,8 @@ main() {
   else
     fail "Unknown install method: ${INSTALL_METHOD} (use npm or git)"
   fi
+
+  refresh_gateway_service_if_loaded
 
   local installed_version
   installed_version="$(resolve_openclaw_version)"

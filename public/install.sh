@@ -1807,6 +1807,37 @@ try {
 ' >/dev/null 2>&1
 }
 
+refresh_gateway_service_if_loaded() {
+    local claw="${OPENCLAW_BIN:-}"
+    if [[ -z "$claw" ]]; then
+        claw="$(resolve_openclaw_bin || true)"
+    fi
+    if [[ -z "$claw" ]]; then
+        return 0
+    fi
+
+    if ! is_gateway_daemon_loaded "$claw"; then
+        return 0
+    fi
+
+    ui_info "Refreshing loaded gateway service"
+    if run_quiet_step "Refreshing gateway service" "$claw" gateway install --force; then
+        ui_success "Gateway service metadata refreshed"
+    else
+        ui_warn "Gateway service refresh failed; continuing"
+        return 0
+    fi
+
+    if run_quiet_step "Restarting gateway service" "$claw" gateway restart; then
+        ui_success "Gateway service restarted"
+    else
+        ui_warn "Gateway service restart failed; continuing"
+        return 0
+    fi
+
+    run_quiet_step "Probing gateway service" "$claw" gateway status --probe --deep || true
+}
+
 # Main installation flow
 main() {
     if [[ "$HELP" == "1" ]]; then
@@ -1929,6 +1960,8 @@ main() {
             warn_shell_path_missing_dir "$HOME/.local/bin" "user-local bin dir (~/.local/bin)"
         fi
     fi
+
+    refresh_gateway_service_if_loaded
 
     # Step 6: Run doctor for migrations on upgrades and git installs
     local run_doctor_after=false
