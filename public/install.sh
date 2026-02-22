@@ -1094,9 +1094,36 @@ detect_openclaw_checkout() {
 }
 
 # Check for Homebrew on macOS
+is_macos_admin_user() {
+    if [[ "$OS" != "macos" ]]; then
+        return 0
+    fi
+    if is_root; then
+        return 0
+    fi
+    id -Gn "$(id -un)" 2>/dev/null | grep -qw "admin"
+}
+
+print_homebrew_admin_fix() {
+    local current_user
+    current_user="$(id -un 2>/dev/null || echo "${USER:-current user}")"
+    ui_error "Homebrew installation requires a macOS Administrator account"
+    echo "Current user (${current_user}) is not in the admin group."
+    echo "Fix options:"
+    echo "  1) Use an Administrator account and re-run the installer."
+    echo "  2) Ask an Administrator to grant admin rights, then sign out/in:"
+    echo "     sudo dseditgroup -o edit -a ${current_user} -t user admin"
+    echo "Then retry:"
+    echo "  curl -fsSL https://openclaw.ai/install.sh | bash"
+}
+
 install_homebrew() {
     if [[ "$OS" == "macos" ]]; then
         if ! command -v brew &> /dev/null; then
+            if ! is_macos_admin_user; then
+                print_homebrew_admin_fix
+                exit 1
+            fi
             ui_info "Homebrew not found, installing"
             run_quiet_step "Installing Homebrew" run_remote_bash "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
 

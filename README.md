@@ -54,6 +54,9 @@ These scripts:
 4. Run `openclaw doctor --non-interactive` for migrations (upgrades only)
 5. Prompt to run `openclaw onboard` (new installs)
 
+Troubleshooting:
+- macOS first-run Homebrew bootstrap needs an Administrator account. If install fails with a sudo/admin error, use an admin account (or add the current user to the `admin` group) and rerun the installer.
+
 ## Related
 
 - [OpenClaw](https://github.com/openclaw/openclaw) — Main repository
